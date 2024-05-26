@@ -8,11 +8,11 @@ Assume in the following examples
 that `image1.png` and `image2.png` are two images of the same document that
 need to be aligned. For example, `image1.png` is a photograph of a papyrus and 
 `image2.png` is a facsimile, possibly prepared from that same photograph, or from another photograph
-that may not quite align with the first. Other common image formats such as JPG are allow allowable.
+that may not quite align with the first. Other common image formats such as JPG are also allowable.
 
 ## Preparation
 
-Make sure that packages numpy, cv2 and PIL are available. Installing is typically by:
+Make sure that packages numpy, cv2, PIL are available. Installing is typically by:
 
 ```
 pip install numpy
@@ -44,7 +44,7 @@ python imagealign.py -p mypointpairs.csv image1.png image2.png
 python imagealign.py -d mydistorted.png -p mypointpairs.csv image1.png image2.png
 ```
 If `mypointpairs.csv` already exists, then the tool is initialized with the point pairs
-read from that file. In the CSV files, coordinates are separated by spaces.
+read from that file. In the CSV files, values are separated by spaces.
 
 Given point pairs as above in `mypointpairs.csv`, 
 one can convert a list of points in `image2.png` to corresponding points in `image1.png`.
@@ -75,7 +75,7 @@ Points in `image2.png` that fall outside the polygon that is mapped to `image1.p
 | *Key* | *Meaning* |
 | :----------- | :----------- |
 | **Spacebar** | Create new point (pair) linking the two images |
-| **Delete** | Remove the point (pair) linking the two images that is closest to mouse pointer |
+| **Delete** | Remove the point (pair) linking the two images that is closest to the mouse pointer |
 | **<** | Zoom in |
 | **>** | Zoom out |
 | *arrow keys* | Move up/down/left/right
@@ -88,7 +88,7 @@ and by then altering the position of that point
 in either the first or second image.
 To alter a point, set the view to 1 (or 2),
 move the mouse to be on top of that point, press the left mouse button, move the mouse to the
-desired position in image 1 (or image 2) and release the mouse button. It may take a few seconds for
+desired position in image 1 (or in image 2) and release the mouse button. It may take a few seconds for
 the distorted image to be recomputed.
 
 When altering or deleting corner points, the tool may automatically add a new corner point to ensure that
