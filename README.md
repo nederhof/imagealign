@@ -12,7 +12,7 @@ that may not quite align with the first. Other common image formats such as JPG 
 
 ## Preparation
 
-Make sure that packages numpy, cv2, PIL are available. Installing is typically by:
+Make sure that Python packages numpy, cv2, PIL are available. Installing is typically by:
 
 ```
 pip install numpy
@@ -74,7 +74,7 @@ Points in `image2.png` that fall outside the polygon that is mapped to `image1.p
 
 | *Key* | *Meaning* |
 | :----------- | :----------- |
-| **Spacebar** | Create new point (pair) linking the two images |
+| **spacebar** | Create new point (pair) linking the two images |
 | **Delete** | Remove the point (pair) linking the two images that is closest to the mouse pointer |
 | **<** | Zoom in |
 | **>** | Zoom out |
@@ -98,3 +98,12 @@ Use the mouse wheel to zoom in and out.
 
 To navigate, press the left mouse button (while not being on top of a point linking the two
 images), drag, and release the mouse button.
+
+### Hints
+
+A suitable strategy to create points aligning the two images is as follows.
+Start with corner points. Choose a position in the first image near one of the corners,
+say the top-right corner of the top-most, right-most sign. Then view the second image and
+drag the created point similarly to the top-right corner of the top-most, right-most sign. Repeat,
+eventually adjusting points closer to the center as well.
+Alternate between viewing the first image, the second image, or both images together.

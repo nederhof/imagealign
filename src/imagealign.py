@@ -19,6 +19,7 @@ MARGIN = 20
 TOP_CANVAS = 30
 CIRC = 5
 POINT_COLOR = 'red'
+DRAGGED_COLOR = 'gray'
 
 def complete_point_pairs(point_pairs, image1, image2):
 	w1, h1 = image1.size
@@ -126,8 +127,8 @@ class AlignImage(tk.Frame):
 		self.quit()
 
 	def set_images(self, image1, image2, point_pairs):
-		self.image1 = image1
-		self.image2 = image2
+		self.image1 = image1.convert('RGB')
+		self.image2 = image2.convert('RGB')
 		self.w_image1, self.h_image1 = self.image1.size
 		self.w_image2, self.h_image2 = self.image2.size
 		self.point_pairs = point_pairs
@@ -195,10 +196,12 @@ class AlignImage(tk.Frame):
 		self.draw_points()
 
 	def draw_points(self):
-		for (_, p) in self.point_pairs:
+		for i, (_, p) in enumerate(self.point_pairs):
 			x1, y1 = self.to_canvas(p[0], p[1])
+			color = DRAGGED_COLOR if self.mode == 'drag' and i == self.dragged_index \
+					else POINT_COLOR
 			self.canvas.create_oval(MARGIN+x1-CIRC, MARGIN+y1-CIRC, MARGIN+x1+CIRC, MARGIN+y1+CIRC, \
-				outline=POINT_COLOR, width=2)
+				outline=color, width=2)
 
 	def motion_canvas(self):
 		if self.image1 is None:
@@ -222,9 +225,11 @@ class AlignImage(tk.Frame):
 			return
 		self.drag_start = (self.x_canvas, self.y_canvas)
 		if self.view_mode in ['1','2']:
-			_, d = self.nearest_point_index(self.x_canvas, self.y_canvas)
+			i, d = self.nearest_point_index(self.x_canvas, self.y_canvas)
 			if d < CIRC * 2:
 				self.mode = 'drag'
+				self.dragged_index = i
+				self.delayed_redraw()
 				self.show_drag()
 
 	def end_drag(self):
