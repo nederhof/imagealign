@@ -74,7 +74,7 @@ Points in `image2.png` that fall outside the polygon that is mapped to `image1.p
 
 | *Key* | *Meaning* |
 | :----------- | :----------- |
-| **spacebar** | Create new point (pair) linking the two images |
+| **spacebar** | Create new point (pair) underneath the mouse pointer, linking the two images |
 | **Delete** | Remove the point (pair) linking the two images that is closest to the mouse pointer |
 | **<** | Zoom in |
 | **>** | Zoom out |
@@ -103,7 +103,8 @@ images), drag, and release the mouse button.
 
 A suitable strategy to create points aligning the two images is as follows.
 Start with corner points. Choose a position in the first image near one of the corners,
-say the top-right corner of the top-most, right-most sign. Then view the second image and
-drag the created point similarly to the top-right corner of the top-most, right-most sign. Repeat,
-eventually adjusting points closer to the center as well.
-Alternate between viewing the first image, the second image, or both images together.
+say the top-right corner of the top-most, right-most glyph. Then view the second image and
+drag the created point similarly to the top-right corner of the top-most, right-most glyph. 
+Repeat, eventually adjusting points closer to the center as well if necessary, but it is best
+to try to avoid points too close together.
+Alternate between viewing the first image, the second image, and both images together.
