@@ -19,6 +19,7 @@ MARGIN = 20
 TOP_CANVAS = 30
 CIRC = 5
 POINT_COLOR = 'red'
+ARROW_COLOR = 'red'
 DRAGGED_COLOR = 'gray'
 
 def complete_point_pairs(point_pairs, image1, image2):
@@ -202,6 +203,12 @@ class AlignImage(tk.Frame):
 					else POINT_COLOR
 			self.canvas.create_oval(MARGIN+x1-CIRC, MARGIN+y1-CIRC, MARGIN+x1+CIRC, MARGIN+y1+CIRC, \
 				outline=color, width=2)
+		if self.mode == 'drag':
+			(_, (px, py)) = self.point_pairs[self.dragged_index]
+			cx, cy = self.to_canvas(px, py)
+			arrow = tk.FIRST if self.view_mode == '1' else tk.LAST
+			self.canvas.create_line(self.x_canvas+MARGIN, self.y_canvas+MARGIN, 
+				cx+MARGIN, cy+MARGIN, fill=ARROW_COLOR, arrow=arrow)
 
 	def motion_canvas(self):
 		if self.image1 is None:
@@ -219,6 +226,8 @@ class AlignImage(tk.Frame):
 			self.center = (self.center[0] - x_diff, self.center[1] - y_diff)
 			self.start_drag()
 			self.adjust_pos()
+		if self.drag_start is not None and self.mode == 'drag':
+			self.delayed_redraw()
 
 	def start_drag(self):
 		if self.image1 is None:
