@@ -66,17 +66,27 @@ class AlignImage(tk.Frame):
 
 	def create_menu(self):
 		items = []
-		items.append(('File', 
-			[('Save', self.save, '<Control-s>', 'Ctrl+S'),
-				('Exit', self.destroy, '<Alt-Key-F4>', 'Alt+F4')]))
+		if sys.platform == 'darwin':
+			items.append(('File', 
+				[('Save', self.save, '<Meta-s>', 'Command+S'),
+					('Exit', self.destroy, '<Meta-w>', 'Command+W')]))
+		else:
+			items.append(('File', 
+				[('Save', self.save, '<Control-s>', 'Ctrl+S'),
+					('Exit', self.destroy, '<Alt-Key-F4>', 'Alt+F4')]))
 		self.master.protocol('WM_DELETE_WINDOW', self.destroy)
 		items.append(('Tools', 
 			[('View 1', self.view1, '1', '1'),
 				('View 2', self.view2, '2', '2'),
 				('View both', self.view_both, '3', '3')]))
-		items.append(('View', 
-			[('Maximize', self.maximize, '<F11>', 'F11'),
-				('Default view', self.default_view, '<F5>', 'F5')]))
+		if sys.platform == 'darwin':
+			items.append(('View', 
+				[('Maximize', self.maximize, '<F11>', 'F11'),
+					('Default view', self.default_view, '<F5>', 'F5')]))
+		else:
+			items.append(('View', 
+				[('Maximize', self.maximize, '<Meta-Control-f>', 'Command+Ctrl+F'),
+					('Default view', self.default_view, '<Meta-r>', 'Command+R')]))
 		self.menu = AlignImageMenu(self, items)
 		self.menu_empty = tk.Menu(self.master)
 
@@ -93,7 +103,7 @@ class AlignImage(tk.Frame):
 		self.master.bind('<Button-5>', lambda event: self.zoom_mouse(1 / MOUSE_ZOOM_STEP))
 		self.master.bind('<Configure>', lambda event: self.master.after_idle(self.resize))
 		self.master.bind('<Key>', lambda event: self.master.after_idle(self.key, event))
-		self.master.bind('<Delete>', lambda event: self.master.after_idle(self.unregister_point, event))
+		self.master.bind('<BackSpace>', lambda event: self.master.after_idle(self.unregister_point, event))
 		self.master.bind('<Left>', lambda event: self.left())
 		self.master.bind('<Right>', lambda event: self.right())
 		self.master.bind('<Up>', lambda event: self.up())
@@ -208,7 +218,7 @@ class AlignImage(tk.Frame):
 			cx, cy = self.to_canvas(px, py)
 			arrow = tk.FIRST if self.view_mode == '1' else tk.LAST
 			self.canvas.create_line(self.x_canvas+MARGIN, self.y_canvas+MARGIN, 
-				cx+MARGIN, cy+MARGIN, fill=ARROW_COLOR, arrow=arrow)
+				cx+MARGIN, cy+MARGIN, fill=ARROW_COLOR, width=2, arrow=arrow)
 
 	def motion_canvas(self):
 		if self.image1 is None:
@@ -374,14 +384,16 @@ class AlignImage(tk.Frame):
 		return undistort_point(x, y, triangle_pairs)
 
 	def key(self, event):
-		if event.state == 0: # No Control or Alt or Shift
-			if event.char == ' ':
-				self.register_point()
-		elif event.state == 1: # Shift
-			if event.char == '<':
-				self.zoom(KEY_ZOOM_STEP)
-			elif event.char == '>':
-				self.zoom(1 / KEY_ZOOM_STEP)
+		if event.char == ' ':
+			self.register_point()
+		elif event.char == '<':
+			self.zoom(KEY_ZOOM_STEP)
+		elif event.char == '>':
+			self.zoom(1 / KEY_ZOOM_STEP)
+		elif event.char == '+':
+			self.zoom(KEY_ZOOM_STEP)
+		elif event.char == '-':
+			self.zoom(1 / KEY_ZOOM_STEP)
 
 	def register_point(self):
 		if self.image1 is None:

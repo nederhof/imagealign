@@ -60,24 +60,24 @@ Points in `image2.png` that fall outside the polygon that is mapped to `image1.p
 
 ### Menu
 
-| *Item* | *Shortcut* | *Meaning* |
+| *Item* | *Shortcut* | *MacOS Shortcut* | *Meaning* |
 | :----------- | :----------- | :----------- |
-| Save | Ctrl+S | Save distorted image and point pairs |
-| Exit | Alt+F4 | Leave tool |
-| View 1 | 1 | Show first image |
-| View 2 | 2 | Show second image |
-| View both | 3 | Show both images superimposed |
-| Maximize | F11 | Toggle full screen |
-| Default view | F5 | Reset view to default |
+| Save | Ctrl+S | Command+S | Save distorted image and point pairs |
+| Exit | Alt+F4 | Command+W | Leave tool |
+| View 1 | 1 | 1 | Show first image |
+| View 2 | 2 | 2 | Show second image |
+| View both | 3 | 3 | Show both images superimposed |
+| Maximize | F11 | Command+Ctrl+F | Toggle full screen |
+| Default view | F5 | Command+R | Reset view to default |
 
 ### Further keyboard functionality
 
 | *Key* | *Meaning* |
 | :----------- | :----------- |
 | **spacebar** | Create new point (pair) underneath the mouse pointer, linking the two images |
-| **Delete** | Remove the point (pair) linking the two images that is closest to the mouse pointer |
-| **<** | Zoom in |
-| **>** | Zoom out |
+| **Backspace** | Remove the point (pair) linking the two images that is closest to the mouse pointer |
+| **<** or **+** | Zoom in |
+| **>** or **-** | Zoom out |
 | *arrow keys* | Move up/down/left/right
 
 ### Mouse
