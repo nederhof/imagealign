@@ -1,15 +1,93 @@
+from scipy.spatial import distance
 import cv2
 import sys
 import os
 import csv
+import math
 import numpy as np
 from PIL import Image, ImageDraw
+
+def equal_edge(e1, e2):
+	return e1[0] == e2[0] and e1[1] == e2[1] or e1[0] == e2[1] and e1[1] == e2[0]
+
+def angle_between(p1, p2):
+	(x1, y1) = p1
+	(x2, y2) = p2
+	(x, y) = (x1-x2, y1-y2)
+	a = math.fabs(math.atan2(y, x))
+	return a if a < math.pi / 2 else math.pi - a
+
+def most_diagonal_edge(t):
+	(p1, p2, p3) = t
+	edges = [(p1, p2), (p2, p3), (p3, p1)]
+	return min(edges, key=lambda e: math.fabs(angle_between(e[0], e[1]) - math.pi / 4))
+
+def longest_edge(t):
+	(p1, p2, p3) = t
+	edges = [(p1, p2), (p2, p3), (p3, p1)]
+	return min(edges, key=lambda e: distance.euclidean(e[0], e[1]))
+
+def edge_triangle_index(edge, triangles):
+	points = set(edge)
+	for i, t in enumerate(triangles):
+		points2 = set(t)
+		if points.issubset(points2):
+			return i
+	return -1
+
+def merge_triangle_pairs(edge, triangle_pair1, triangle_pair2):
+	points1 = []
+	points2 = []
+	for i in range(3):
+		p = triangle_pair1[0][i]
+		if p != edge[0] and p != edge[1]:
+			points1.append(p)
+			points2.append(triangle_pair1[1][i])
+			break
+	for i in range(3):
+		p = triangle_pair1[0][i]
+		if p == edge[0]:
+			points1.append(p)
+			points2.append(triangle_pair1[1][i])
+			break
+	for i in range(3):
+		p = triangle_pair2[0][i]
+		if p != edge[0] and p != edge[1]:
+			points1.append(p)
+			points2.append(triangle_pair2[1][i])
+			break
+	for i in range(3):
+		p = triangle_pair1[0][i]
+		if p == edge[1]:
+			points1.append(p)
+			points2.append(triangle_pair1[1][i])
+			break
+	return (points1, points2)
+
+def triangle_area(t):
+	# Heron's formula
+	(p1, p2, p3) = t
+	a = distance.euclidean(p1, p2)
+	b = distance.euclidean(p2, p3)
+	c = distance.euclidean(p3, p1)
+	s = (a+b+c) / 2
+	return np.sqrt(s * (s-a) * (s-b) * (s-c))
+
+def triangle_acute(t):
+	(p1, p2, p3) = t
+	v1 = np.subtract(p1, p2)
+	v2 = np.subtract(p2, p3)
+	v3 = np.subtract(p3, p1)
+	p1 = np.dot(v1, v2)
+	p2 = np.dot(v2, v3)
+	p3 = np.dot(v3, v1)
+	return p1 > 0 and p2 > 0 and p3 > 0
 
 def moved_point(p, x, y):
 	return (p[0] + x, p[1] + y)
 
-def moved_triangle(t, x, y):
-	return (moved_point(t[0], x, y), moved_point(t[1], x, y), moved_point(t[2], x, y))
+def moved_polygon(t, x, y):
+	return tuple([moved_point(p, x, y) for p in t])
 
 def triangles_to_affine(triangles1, triangles2):
 	tr = cv2.getAffineTransform(np.float32(triangles1), np.float32(triangles2))
@@ -17,6 +95,16 @@ def triangles_to_affine(triangles1, triangles2):
 
 def apply_affine(x, y, af):
 	return af[0] * x + af[1] * y + af[2], af[3] * x + af[4] * y + af[5]
+
+def quads_to_transform(t1, t2):
+	inputs = np.float32(t1)
+	outputs = np.float32(t2)
+	return cv2.getPerspectiveTransform(inputs, outputs)
+
+def quad_distort(source, transform, w, h):
+	source_cv = cv2.cvtColor(np.array(source), cv2.COLOR_RGB2BGR)
+	target_cv = cv2.warpPerspective(source_cv, transform, (w, h))
+	return Image.fromarray(cv2.cvtColor(target_cv, cv2.COLOR_BGR2RGB))
 
 def in_triangle(x, y, t):
 	((x1,y1), (x2,y2), (x3,y3)) = t
@@ -54,40 +142,62 @@ def point_pairs_to_triangle_pairs(point_pairs):
 	return [((p1, p2, p3), (source_to_target[p1], source_to_target[p2], source_to_target[p3])) \
 		for (p1, p2, p3) in triangles]
 
-def normalize_triangle(t):
+def normalize_polygon(t):
 	xs = [x for (x,_) in t]
 	ys = [y for (_,y) in t]
 	x_min = min(xs)
 	y_min = min(ys)
 	x_max = max(xs)
 	y_max = max(ys)
-	return moved_triangle(t, -x_min, -y_min), x_min, y_min, x_max-x_min+1, y_max-y_min+1
+	return moved_polygon(t, -x_min, -y_min), x_min, y_min, x_max-x_min+1, y_max-y_min+1
 
-def triangle_mask(t, w, h):
+def polygon_mask(t, w, h):
 	mask = Image.new('L', (w,h), 0)
 	draw = ImageDraw.Draw(mask)
 	draw.polygon(list(t), fill=255, outline=None)
 	return mask
 
-def distort_image(source, triangle_pairs, w, h):
+def merge_triangles(triangle_pairs):
+	pairs = []
+	while len(triangle_pairs) > 0:
+		triangle_pair = triangle_pairs.pop()
+		edge = most_diagonal_edge(triangle_pair[0])
+		i = edge_triangle_index(edge, [t1 for (t1, t2) in triangle_pairs])
+		if i < 0:
+			pairs.append(triangle_pair)
+		else:
+			triangle_pair2 = triangle_pairs.pop(i)
+			merged_quad_pair = merge_triangle_pairs(edge, triangle_pair, triangle_pair2)
+			pairs.append(merged_quad_pair)
+	return pairs
+
+def distort_image(source, pairs, w, h):
 	target = Image.new(mode='RGB', size=(w,h), color='black')
-	for (t1, t2) in triangle_pairs:
-		t1_norm, x1, y1, w1, h1 = normalize_triangle(t1)
-		t2_norm, x2, y2, w2, h2 = normalize_triangle(t2)
+	for (t1, t2) in pairs:
+		t1_norm, x1, y1, w1, h1 = normalize_polygon(t1)
+		t2_norm, x2, y2, w2, h2 = normalize_polygon(t2)
 		w3 = max(w1, w2)
 		h3 = max(h1, h2)
-		af = triangles_to_affine(t2_norm, t1_norm)
-		sub_source = source.crop((x1, y1, x1+w3, y1+h3))
-		sub_target = sub_source.transform(sub_source.size, Image.AFFINE, af, resample=Image.BICUBIC)
-		mask_target = triangle_mask(t2_norm, w3, h3)
-		target.paste(sub_target, (x2, y2), mask_target)
+		if len(t1_norm) == 3:
+			af = triangles_to_affine(t2_norm, t1_norm)
+			sub_source = source.crop((x1, y1, x1+w3, y1+h3))
+			sub_target = sub_source.transform(sub_source.size, Image.AFFINE, af, resample=Image.BICUBIC)
+			mask_target = polygon_mask(t2_norm, w3, h3)
+			target.paste(sub_target, (x2, y2), mask_target)
+		elif len(t1_norm) == 4:
+			transform = quads_to_transform(t1_norm, t2_norm)
+			sub_source = source.crop((x1, y1, x1+w3, y1+h3))
+			sub_target = quad_distort(sub_source, transform, w3, h3)
+			sub_target.save("x.png")
+			mask_target = polygon_mask(t2_norm, w3, h3)
+			target.paste(sub_target, (x2, y2), mask_target)
 	return target
 
 def distort_point(x, y, triangle_pairs):
 	for (t1, t2) in triangle_pairs:
 		if in_triangle(x, y, t1):
-			t1_norm, x1, y1, w1, h1 = normalize_triangle(t1)
-			t2_norm, x2, y2, w2, h2 = normalize_triangle(t2)
+			t1_norm, x1, y1, w1, h1 = normalize_polygon(t1)
+			t2_norm, x2, y2, w2, h2 = normalize_polygon(t2)
 			af = triangles_to_affine(t1_norm, t2_norm)
 			(x3, y3) = apply_affine(x-x1, y-y1, af)
 			return (int(x3 + x2), int(y3 + y2))
@@ -96,8 +206,8 @@ def distort_point(x, y, triangle_pairs):
 def undistort_point(x, y, triangle_pairs):
 	for (t1, t2) in triangle_pairs:
 		if in_triangle(x, y, t2):
-			t1_norm, x1, y1, w1, h1 = normalize_triangle(t1)
-			t2_norm, x2, y2, w2, h2 = normalize_triangle(t2)
+			t1_norm, x1, y1, w1, h1 = normalize_polygon(t1)
+			t2_norm, x2, y2, w2, h2 = normalize_polygon(t2)
 			af = triangles_to_affine(t2_norm, t1_norm)
 			(x3, y3) = apply_affine(x-x2, y-y2, af)
 			return (int(x3 + x1), int(y3 + y1))

@@ -69,6 +69,8 @@ Points in `image2.png` that fall outside the polygon that is mapped to `image1.p
 | View both | 3 | 3 | Show both images superimposed |
 | Maximize | F11 | Command+Ctrl+F | Toggle full screen |
 | Default view | F5 | Command+R | Reset view to default |
+| Triangles | t | t | Use triangles only (default) |
+| Quadrilaterals | q | q | Use combination of quadrilaterals and triangles |
 
 ### Further keyboard functionality
 
@@ -108,3 +110,14 @@ drag the created point similarly to the top-right corner of the top-most, right-
 Repeat, eventually adjusting points closer to the center as well if necessary, but it is best
 to try to avoid points too close together.
 Alternate between viewing the first image, the second image, and both images together.
+
+### Triangles versus quadrilaterals
+
+By default, triangles from the second image are mapped to triangles from the first image,
+using affine transforms.
+
+If desired, it is also possible to let the tool automatically merge
+some triangles into quadrilaterals. The quadrilaterals are then mapped using
+perspective transforms. The downside is however that seams
+between quadrilaterals and other quadrilaterals and triangles will start to appear. 
+Therefore this may only be appropriate with say four points selected around a text.

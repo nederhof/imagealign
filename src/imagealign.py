@@ -7,7 +7,7 @@ from getopt import getopt, GetoptError
 from PIL import Image, ImageTk
 
 from imagedistortion import point_pairs_to_triangle_pairs, distort_image, undistort_point, \
-		read_point_pairs, write_point_pairs
+		read_point_pairs, write_point_pairs, merge_triangles
 
 DELAY = 1
 KEY_ZOOM_STEP = 1.2
@@ -60,7 +60,7 @@ class AlignImage(tk.Frame):
 	def __init__(self, root):
 		self.root = root
 		tk.Frame.__init__(self, self.root)
-		self.master.title("Image align")
+		self.master.title('Image align')
 		self.create_menu()
 		self.init_layout()
 
@@ -88,7 +88,17 @@ class AlignImage(tk.Frame):
 				[('Maximize', self.maximize, '<Meta-Control-f>', 'Command+Ctrl+F'),
 					('Default view', self.default_view, '<Meta-r>', 'Command+R')]))
 		self.menu = AlignImageMenu(self, items)
+		self.add_polygon_control()
 		self.menu_empty = tk.Menu(self.master)
+
+	def add_polygon_control(self):
+		self.poly_mode_var = tk.StringVar(self.master, 't')
+		self.poly_menu = tk.Menu(self.menu, tearoff=False)
+		self.poly_menu.add_radiobutton(label='Triangles', var=self.poly_mode_var, value='t', 
+			command=self.set_triangles)
+		self.poly_menu.add_radiobutton(label='Quadrilaterals', var=self.poly_mode_var, value='q', 
+			command=self.set_quads)
+		self.menu.add_cascade(label='Polygons', menu=self.poly_menu)
 
 	def menubar_show(self):
 		self.master.configure(menu=self.menu)
@@ -155,8 +165,10 @@ class AlignImage(tk.Frame):
 
 	def set_distorted(self):
 		self.show_wait()
-		triangle_pairs = point_pairs_to_triangle_pairs(self.point_pairs)
-		self.distorted = distort_image(self.image2, triangle_pairs, self.w_image1, self.h_image1)
+		pairs = point_pairs_to_triangle_pairs(self.point_pairs)
+		if self.poly_mode_var.get() == 'q':
+			pairs = merge_triangles(pairs)
+		self.distorted = distort_image(self.image2, pairs, self.w_image1, self.h_image1)
 		self.normal_cursor()
 		self.merged = Image.blend(self.image1, self.distorted, 0.5)
 		self.delayed_redraw()
@@ -172,6 +184,14 @@ class AlignImage(tk.Frame):
 	def view_both(self):
 		self.view_mode = 'both'
 		self.delayed_redraw()
+
+	def set_triangles(self):
+		self.poly_mode_var.set('t')
+		self.set_distorted()
+
+	def set_quads(self):
+		self.poly_mode_var.set('q')
+		self.set_distorted()
 
 	def resize(self):
 		self.canvas.update()
@@ -394,6 +414,10 @@ class AlignImage(tk.Frame):
 			self.zoom(KEY_ZOOM_STEP)
 		elif event.char == '-':
 			self.zoom(1 / KEY_ZOOM_STEP)
+		elif event.char == 't':
+			self.set_triangles()
+		elif event.char == 'q':
+			self.set_quads()
 
 	def register_point(self):
 		if self.image1 is None:
