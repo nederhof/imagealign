@@ -92,7 +92,7 @@ def get_point_pairs(im1, im2):
 	hom = get_homography(im1, im2)
 	inv = np.linalg.inv(hom)
 	if hom is None:
-		return None
+		return []
 	w1, h1 = im1.size
 	w2, h2 = im2.size
 	p1 = (INNER_MARGIN, INNER_MARGIN)
