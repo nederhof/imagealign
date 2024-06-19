@@ -80,7 +80,8 @@ Points in `image2.png` that fall outside the polygon that is mapped to `image1.p
 | **Backspace** | Remove the point (pair) linking the two images that is closest to the mouse pointer |
 | **<** or **+** | Zoom in |
 | **>** or **-** | Zoom out |
-| *arrow keys* | Move up/down/left/right
+| *arrow keys* | Move up/down/left/right |
+| **a** | Find point pairs automatically |
 
 ### Mouse
 
@@ -121,3 +122,9 @@ some triangles into quadrilaterals. The quadrilaterals are then mapped using
 perspective transforms. The downside is however that seams
 between quadrilaterals and other quadrilaterals and triangles will start to appear. 
 Therefore this may only be appropriate with say four points selected around a text.
+
+### Finding points automatically
+
+By pressing **a**, the existing point pairs are deleted, and four new point pairs are introduced
+automatically, using SIFT, under the assumption that one image resulted from another by
+a perspective transform. The results are therefore best viewed in the `Quadrilaterals' mode.

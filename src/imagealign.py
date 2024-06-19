@@ -8,6 +8,7 @@ from PIL import Image, ImageTk
 
 from imagedistortion import point_pairs_to_triangle_pairs, distort_image, undistort_point, \
 		read_point_pairs, write_point_pairs, merge_triangles
+from autoalign import get_point_pairs
 
 DELAY = 1
 KEY_ZOOM_STEP = 1.2
@@ -172,6 +173,12 @@ class AlignImage(tk.Frame):
 		self.normal_cursor()
 		self.merged = Image.blend(self.image1, self.distorted, 0.5)
 		self.delayed_redraw()
+
+	def add_auto(self):
+		self.show_wait()
+		self.point_pairs = get_point_pairs(self.image2, self.image1)
+		self.normalize_point_pairs()
+		self.set_distorted()
 
 	def view1(self):
 		self.view_mode = '1'
@@ -418,6 +425,8 @@ class AlignImage(tk.Frame):
 			self.set_triangles()
 		elif event.char == 'q':
 			self.set_quads()
+		elif event.char == 'a':
+			self.add_auto()
 
 	def register_point(self):
 		if self.image1 is None:
