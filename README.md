@@ -132,3 +132,7 @@ non-linear Thin Plate Spline method.
 By pressing **a**, the existing point pairs are deleted, and four new point pairs are introduced
 automatically, using SIFT, under the assumption that one image resulted from another by
 a perspective transform. The results are therefore best viewed in the Quadrilaterals mode.
+
+## Acknowledgements
+
+Ideas and feedback by Christian Casey have been instrumental in bringing this project forward.
