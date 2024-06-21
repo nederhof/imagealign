@@ -4,8 +4,10 @@ import sys
 from PIL import Image
 
 MIN_MATCH_COUNT = 10
+MIN_GRID_COUNT = 100
 MAX_CV_SIZE = 2000
 INNER_MARGIN = 5
+GRID_SIZE = 10
 
 def pil_to_cv(im_pil):
 	im_cv = cv2.cvtColor(np.array(im_pil), cv2.COLOR_RGB2GRAY)
@@ -23,7 +25,7 @@ def get_flann():
 	search_params = dict(checks = 50)
 	return cv2.FlannBasedMatcher(index_params, search_params)
 
-def get_sift_matches(im1, im2):
+def get_sift_matches(im1, im2, min_count):
 	sift = cv2.SIFT_create()
 	kp1, ds1 = sift.detectAndCompute(im1, None)
 	kp2, ds2 = sift.detectAndCompute(im2, None)
@@ -32,18 +34,25 @@ def get_sift_matches(im1, im2):
 	for f in range(3, 8):
 		f = f / 10
 		good = [m for (m,n) in matches if m.distance < f * n.distance]
-		if len(good) >= MIN_MATCH_COUNT:
+		if len(good) >= min_count:
 			return kp1, kp2, good
 	return kp1, kp2, None
 
-def get_homography(im1_pil, im2_pil):
+def get_matching_points(im1_pil, im2_pil, min_count):
 	scale1, im1_cv = pil_to_cv(im1_pil)
 	scale2, im2_cv = pil_to_cv(im2_pil)
-	kp1, kp2, good = get_sift_matches(im1_cv, im2_cv)
+	kp1, kp2, good = get_sift_matches(im1_cv, im2_cv, min_count)
 	if good is None:
 		return None
 	pts1 = scale_points(scale1, [kp1[m.queryIdx].pt for m in good])
 	pts2 = scale_points(scale2, [kp2[m.trainIdx].pt for m in good])
+	return pts1, pts2
+
+def get_homography(im1_pil, im2_pil):
+	pair_of_points = get_matching_points(im1_pil, im2_pil, MIN_MATCH_COUNT)
+	if pair_of_points is None:
+		return None
+	pts1, pts2 = pair_of_points
 	hom, _ = cv2.findHomography(pts1, pts2, cv2.RANSAC, 5.0)
 	return hom
 
@@ -88,7 +97,7 @@ def add_point(points, p, hom, inv, w1, h1, w2, h2):
 		return
 	points.append((p, q))
 
-def get_point_pairs(im1, im2):
+def get_corner_point_pairs(im1, im2):
 	hom = get_homography(im1, im2)
 	inv = np.linalg.inv(hom)
 	if hom is None:
@@ -109,6 +118,22 @@ def get_point_pairs(im1, im2):
 	add_point(points, p3, hom, inv, w1, h1, w2, h2)
 	add_point(points, p4, hom, inv, w1, h1, w2, h2)
 	return points
+
+def get_grid_point_pairs(im1, im2):
+	pair_of_points = get_matching_points(im1, im2, MIN_GRID_COUNT)
+	if pair_of_points is None:
+		return []
+	pts1, pts2 = pair_of_points
+	pts1 = [(round(p[0][0]),round(p[0][1])) for p in pts1]
+	pts2 = [(round(p[0][0]),round(p[0][1])) for p in pts2]
+	w, h = im1.size
+	buckets = {}
+	for (x,y), p2 in zip(pts1, pts2):
+		x_bucket = x * GRID_SIZE // w
+		y_bucket = y * GRID_SIZE // h
+		bucket = (x_bucket, y_bucket)
+		buckets[bucket] = ((x,y), p2)
+	return list(buckets.values())
 
 if __name__ == '__main__':
 	if len(sys.argv) != 3:

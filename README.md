@@ -129,9 +129,12 @@ non-linear Thin Plate Spline method.
 
 ### Finding points automatically
 
-By pressing **a**, the existing point pairs are deleted, and four new point pairs are introduced
-automatically, using SIFT, under the assumption that one image resulted from another by
-a perspective transform. The results are therefore best viewed in the Quadrilaterals mode.
+By pressing **a**, the existing point pairs are deleted, and
+corresponding point pairs are automatically found, using SIFT.
+In the Quadrilaterals mode, only four new points are introduced, at the corners of the images,
+under the assumption that one image resulted from another by a perspective transform.
+
+In the Triangles and Warp modes, the corresponding points are spread out over the images.
 
 ## Acknowledgements
 

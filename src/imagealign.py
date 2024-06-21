@@ -9,7 +9,7 @@ from PIL import Image, ImageTk
 from imagedistortion import point_pairs_to_triangle_pairs, split_point_pairs, \
 		distort_image, undistort_point, warp_image, unwarp_point, \
 		read_point_pairs, write_point_pairs, merge_triangles
-from autoalign import get_point_pairs
+from autoalign import get_corner_point_pairs, get_grid_point_pairs
 
 DELAY = 1
 KEY_ZOOM_STEP = 1.2
@@ -184,7 +184,10 @@ class AlignImage(tk.Frame):
 
 	def add_auto(self):
 		self.show_wait()
-		self.point_pairs = get_point_pairs(self.image2, self.image1)
+		if self.poly_mode_var.get() == 'q':
+			self.point_pairs = get_corner_point_pairs(self.image2, self.image1)
+		else:
+			self.point_pairs = get_grid_point_pairs(self.image2, self.image1)
 		self.normalize_point_pairs()
 		self.set_distorted()
 
