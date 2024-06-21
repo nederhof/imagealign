@@ -61,7 +61,7 @@ Points in `image2.png` that fall outside the polygon that is mapped to `image1.p
 ### Menu
 
 | *Item* | *Shortcut* | *MacOS Shortcut* | *Meaning* |
-| :----------- | :----------- | :----------- |
+| :----------- | :----------- | :----------- | :----------- |
 | Save | Ctrl+S | Command+S | Save distorted image and point pairs |
 | Exit | Alt+F4 | Command+W | Leave tool |
 | View 1 | 1 | 1 | Show first image |
