@@ -142,6 +142,14 @@ def point_pairs_to_triangle_pairs(point_pairs):
 	return [((p1, p2, p3), (source_to_target[p1], source_to_target[p2], source_to_target[p3])) \
 		for (p1, p2, p3) in triangles]
 
+def split_point_pairs(point_pairs):
+	source_points = [[x, y] for ((x, y), _) in point_pairs]
+	dest_points = [[x, y] for (_, (x, y)) in point_pairs]
+	source_points = np.int32(source_points).reshape(1, -1, 2)
+	dest_points = np.int32(dest_points).reshape(1, -1, 2)
+	matches = [cv2.DMatch(i, i, 0) for i in range(len(point_pairs))]
+	return source_points, dest_points, matches
+
 def normalize_polygon(t):
 	xs = [x for (x,_) in t]
 	ys = [y for (_,y) in t]
@@ -222,6 +230,36 @@ def distort_points(in_points, triangle_pairs):
 		else:
 			out_points.append(distorted)
 	return out_points
+
+def get_grid(w, h):
+	xs = np.stack([np.arange(0, w) for _ in range(h)]).astype(np.float32)
+	ys = np.stack([np.arange(0, h) for _ in range(w)]).astype(np.float32).T
+	return np.concatenate([xs[..., np.newaxis], ys[..., np.newaxis]], 2)
+
+def warp_image(source, pts_src, pts_dst, matches, w, h):
+	w_source, h_source = source.size
+	w_max = max(w, w_source)
+	h_max = max(h, h_source)
+	bottom = h_max - h_source
+	right = w_max - w_source
+	source_cv = cv2.cvtColor(np.array(source), cv2.COLOR_RGB2BGR)
+	source_cv = cv2.copyMakeBorder(source_cv, 0, bottom, 0, right, \
+			cv2.BORDER_CONSTANT, value=(255,255,255))
+	grid = get_grid(w, h)
+	tps = cv2.createThinPlateSplineShapeTransformer()
+	tps.estimateTransformation(pts_src, pts_dst, matches)
+	grid_warped = tps.applyTransformation(grid.reshape(1, -1, 2))[1].reshape(h, w, 2)
+	target_cv = cv2.remap(source_cv, grid_warped[:, :, 0], grid_warped[:, :, 1], cv2.INTER_LINEAR)
+	target = Image.fromarray(cv2.cvtColor(target_cv, cv2.COLOR_BGR2RGB))
+	target = target.crop((0, 0, w, h))
+	return target
+
+def unwarp_point(x, y, pts_dst, pts_src, matches):
+	tps = cv2.createThinPlateSplineShapeTransformer()
+	tps.estimateTransformation(pts_src, pts_dst, matches)
+	in_p = np.array([(x,y)], np.float32).reshape((-1,1,2))
+	out_p = tps.applyTransformation(in_p)
+	return round(out_p[1][0][0][0]), round(out_p[1][0][0][1])
 
 def read_point_pairs(path):
 	if not os.path.isfile(path):

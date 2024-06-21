@@ -6,7 +6,8 @@ import tkinter as tk
 from getopt import getopt, GetoptError
 from PIL import Image, ImageTk
 
-from imagedistortion import point_pairs_to_triangle_pairs, distort_image, undistort_point, \
+from imagedistortion import point_pairs_to_triangle_pairs, split_point_pairs, \
+		distort_image, undistort_point, warp_image, unwarp_point, \
 		read_point_pairs, write_point_pairs, merge_triangles
 from autoalign import get_point_pairs
 
@@ -99,6 +100,8 @@ class AlignImage(tk.Frame):
 			command=self.set_triangles)
 		self.poly_menu.add_radiobutton(label='Quadrilaterals', var=self.poly_mode_var, value='q', 
 			command=self.set_quads)
+		self.poly_menu.add_radiobutton(label='Warp', var=self.poly_mode_var, value='w', 
+			command=self.set_warp)
 		self.menu.add_cascade(label='Polygons', menu=self.poly_menu)
 
 	def menubar_show(self):
@@ -166,10 +169,15 @@ class AlignImage(tk.Frame):
 
 	def set_distorted(self):
 		self.show_wait()
-		pairs = point_pairs_to_triangle_pairs(self.point_pairs)
-		if self.poly_mode_var.get() == 'q':
-			pairs = merge_triangles(pairs)
-		self.distorted = distort_image(self.image2, pairs, self.w_image1, self.h_image1)
+		if self.poly_mode_var.get() == 'w':
+			pts_dst, pts_src, matches = split_point_pairs(self.point_pairs)
+			self.distorted = warp_image(self.image2, pts_src, pts_dst, matches, \
+				self.w_image1, self.h_image1)
+		else:
+			pairs = point_pairs_to_triangle_pairs(self.point_pairs)
+			if self.poly_mode_var.get() == 'q':
+				pairs = merge_triangles(pairs)
+			self.distorted = distort_image(self.image2, pairs, self.w_image1, self.h_image1)
 		self.normal_cursor()
 		self.merged = Image.blend(self.image1, self.distorted, 0.5)
 		self.delayed_redraw()
@@ -198,6 +206,10 @@ class AlignImage(tk.Frame):
 
 	def set_quads(self):
 		self.poly_mode_var.set('q')
+		self.set_distorted()
+
+	def set_warp(self):
+		self.poly_mode_var.set('w')
 		self.set_distorted()
 
 	def resize(self):
@@ -407,8 +419,12 @@ class AlignImage(tk.Frame):
 
 	def from_canvas2(self, px, py):
 		x, y = self.from_canvas1(self.x_canvas, self.y_canvas)
-		triangle_pairs = point_pairs_to_triangle_pairs(self.point_pairs)
-		return undistort_point(x, y, triangle_pairs)
+		if self.poly_mode_var.get() == 'w':
+			pts_dst, pts_src, matches = split_point_pairs(self.point_pairs)
+			return unwarp_point(x, y, pts_dst, pts_src, matches)
+		else:
+			triangle_pairs = point_pairs_to_triangle_pairs(self.point_pairs)
+			return undistort_point(x, y, triangle_pairs)
 
 	def key(self, event):
 		if event.char == ' ':
@@ -425,6 +441,8 @@ class AlignImage(tk.Frame):
 			self.set_triangles()
 		elif event.char == 'q':
 			self.set_quads()
+		elif event.char == 'w':
+			self.set_warp()
 		elif event.char == 'a':
 			self.add_auto()
 

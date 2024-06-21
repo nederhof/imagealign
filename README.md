@@ -71,6 +71,7 @@ Points in `image2.png` that fall outside the polygon that is mapped to `image1.p
 | Default view | F5 | Command+R | Reset view to default |
 | Triangles | t | t | Use triangles only (default) |
 | Quadrilaterals | q | q | Use combination of quadrilaterals and triangles |
+| Warp | w | w | Instead of polynomials, use Thin Plate Spline method |
 
 ### Further keyboard functionality
 
@@ -127,4 +128,4 @@ Therefore this may only be appropriate with say four points selected around a te
 
 By pressing **a**, the existing point pairs are deleted, and four new point pairs are introduced
 automatically, using SIFT, under the assumption that one image resulted from another by
-a perspective transform. The results are therefore best viewed in the `Quadrilaterals' mode.
+a perspective transform. The results are therefore best viewed in the Quadrilaterals mode.
