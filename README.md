@@ -71,7 +71,7 @@ Points in `image2.png` that fall outside the polygon that is mapped to `image1.p
 | Default view | F5 | Command+R | Reset view to default |
 | Triangles | t | t | Use triangles only (default) |
 | Quadrilaterals | q | q | Use combination of quadrilaterals and triangles |
-| Warp | w | w | Instead of polynomials, use Thin Plate Spline method |
+| Warp | w | w | Do not use polygons |
 
 ### Further keyboard functionality
 
@@ -123,6 +123,9 @@ some triangles into quadrilaterals. The quadrilaterals are then mapped using
 perspective transforms. The downside is however that seams
 between quadrilaterals and other quadrilaterals and triangles will start to appear. 
 Therefore this may only be appropriate with say four points selected around a text.
+
+With Warp, no polygons are used at all. The image transformation is done using the
+non-linear Thin Plate Spline method.
 
 ### Finding points automatically
 
