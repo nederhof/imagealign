@@ -78,7 +78,6 @@ class BilinearMap:
 
 	def map(self, x, y):
 		u, v = self.coefficients(x, y)
-		print("UV", u, v)
 		(x0,y0) = self.quad2[0]
 		(x1,y1) = self.quad2[1]
 		(x2,y2) = self.quad2[2]
