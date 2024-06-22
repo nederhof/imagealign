@@ -7,6 +7,8 @@ import math
 import numpy as np
 from PIL import Image, ImageDraw
 
+from bilinear import BilinearMap
+
 def equal_edge(e1, e2):
 	return e1[0] == e2[0] and e1[1] == e2[1] or e1[0] == e2[1] and e1[1] == e2[0]
 
@@ -106,6 +108,14 @@ def quad_distort(source, transform, w, h):
 	target_cv = cv2.warpPerspective(source_cv, transform, (w, h))
 	return Image.fromarray(cv2.cvtColor(target_cv, cv2.COLOR_BGR2RGB))
 
+def bilinear_distort(source, transform, w, h):
+	source_cv = cv2.cvtColor(np.array(source), cv2.COLOR_RGB2BGR)
+	grid = get_grid(w, h)
+	grid_warped = transform.map_grid(grid)
+	target_cv = cv2.remap(source_cv, grid_warped[:, :, 0], grid_warped[:, :, 1], cv2.INTER_LINEAR)
+	target = Image.fromarray(cv2.cvtColor(target_cv, cv2.COLOR_BGR2RGB))
+	return target
+
 def in_triangle(x, y, t):
 	((x1,y1), (x2,y2), (x3,y3)) = t
 	v1 = (x - x2) * (y1 - y2) - (x1 - x2) * (y - y2)
@@ -179,7 +189,7 @@ def merge_triangles(triangle_pairs):
 			pairs.append(merged_quad_pair)
 	return pairs
 
-def distort_image(source, pairs, w, h):
+def distort_image(source, pairs, w, h, bilinear):
 	target = Image.new(mode='RGB', size=(w,h), color='black')
 	for (t1, t2) in pairs:
 		t1_norm, x1, y1, w1, h1 = normalize_polygon(t1)
@@ -193,10 +203,13 @@ def distort_image(source, pairs, w, h):
 			mask_target = polygon_mask(t2_norm, w3, h3)
 			target.paste(sub_target, (x2, y2), mask_target)
 		elif len(t1_norm) == 4:
-			transform = quads_to_transform(t1_norm, t2_norm)
 			sub_source = source.crop((x1, y1, x1+w3, y1+h3))
-			sub_target = quad_distort(sub_source, transform, w3, h3)
-			sub_target.save("x.png")
+			if bilinear:
+				transform = BilinearMap(t2_norm, t1_norm)
+				sub_target = bilinear_distort(sub_source, transform, w3, h3)
+			else:
+				transform = quads_to_transform(t1_norm, t2_norm)
+				sub_target = quad_distort(sub_source, transform, w3, h3)
 			mask_target = polygon_mask(t2_norm, w3, h3)
 			target.paste(sub_target, (x2, y2), mask_target)
 	return target

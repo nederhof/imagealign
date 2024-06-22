@@ -71,6 +71,7 @@ Points in `image2.png` that fall outside the polygon that is mapped to `image1.p
 | Default view | F5 | Command+R | Reset view to default |
 | Triangles | t | t | Use triangles only (default) |
 | Quadrilaterals | q | q | Use combination of quadrilaterals and triangles |
+| Bilinear | b | b | Use bilinear transform (experimental) |
 | Warp | w | w | Do not use polygons |
 
 ### Further keyboard functionality
@@ -127,6 +128,12 @@ Therefore this may only be appropriate with say four points selected around a te
 With Warp, no polygons are used at all. The image transformation is done using the
 non-linear Thin Plate Spline method.
 
+### Bilinear transform (experimental)
+
+As an attempt to avoid seams at the edges of quadrilaterals, also a bilinear 
+transform was implemented. This is very slow however, and artefacts still occur
+at the edges. Until this is fixed, the Bilinear mode is best not used.
+
 ### Finding points automatically
 
 By pressing **a**, the existing point pairs are deleted, and
@@ -134,7 +141,8 @@ corresponding point pairs are automatically found, using SIFT.
 In the Quadrilaterals mode, only four new points are introduced, at the corners of the images,
 under the assumption that one image resulted from another by a perspective transform.
 
-In the Triangles and Warp modes, the corresponding points are spread out over the images.
+In the Triangles, Bilinear and Warp modes, 
+the corresponding points are spread out over the images.
 
 ## Acknowledgements
 

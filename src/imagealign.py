@@ -100,6 +100,8 @@ class AlignImage(tk.Frame):
 			command=self.set_triangles)
 		self.poly_menu.add_radiobutton(label='Quadrilaterals', var=self.poly_mode_var, value='q', 
 			command=self.set_quads)
+		self.poly_menu.add_radiobutton(label='Bilinear', var=self.poly_mode_var, value='b', 
+			command=self.set_bilinear)
 		self.poly_menu.add_radiobutton(label='Warp', var=self.poly_mode_var, value='w', 
 			command=self.set_warp)
 		self.menu.add_cascade(label='Polygons', menu=self.poly_menu)
@@ -175,9 +177,10 @@ class AlignImage(tk.Frame):
 				self.w_image1, self.h_image1)
 		else:
 			pairs = point_pairs_to_triangle_pairs(self.point_pairs)
-			if self.poly_mode_var.get() == 'q':
+			if self.poly_mode_var.get() == 'q' or self.poly_mode_var.get() == 'b':
 				pairs = merge_triangles(pairs)
-			self.distorted = distort_image(self.image2, pairs, self.w_image1, self.h_image1)
+			self.distorted = distort_image(self.image2, pairs, self.w_image1, self.h_image1, 
+				self.poly_mode_var.get() == 'b')
 		self.normal_cursor()
 		self.merged = Image.blend(self.image1, self.distorted, 0.5)
 		self.delayed_redraw()
@@ -209,6 +212,10 @@ class AlignImage(tk.Frame):
 
 	def set_quads(self):
 		self.poly_mode_var.set('q')
+		self.set_distorted()
+
+	def set_bilinear(self):
+		self.poly_mode_var.set('b')
 		self.set_distorted()
 
 	def set_warp(self):
@@ -444,6 +451,8 @@ class AlignImage(tk.Frame):
 			self.set_triangles()
 		elif event.char == 'q':
 			self.set_quads()
+		elif event.char == 'b':
+			self.set_bilinear()
 		elif event.char == 'w':
 			self.set_warp()
 		elif event.char == 'a':
