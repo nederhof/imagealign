@@ -40,10 +40,12 @@ v = [-F +- sqrt(F^2 - 4 E G)] / (2 E)
 
 class BilinearMap:
 	def __init__(self, quad1, quad2):
-		(x0,y0) = quad1[0]
-		(x1,y1) = quad1[1]
-		(x2,y2) = quad1[2]
-		(x3,y3) = quad1[3]
+		if not clockwise(quad1):
+			quad1 = reverse(quad1)
+			quad2 = reverse(quad2)
+		self.quad1 = quad1
+		self.quad2 = quad2
+		((x0,y0),(x1,y1),(x2,y2),(x3,y3)) = quad1
 		self.Ax = x0-x1+x2-x3
 		self.Bx = -x0+x1
 		self.Cx = -x0+x3
@@ -52,39 +54,43 @@ class BilinearMap:
 		self.By = -y0+y1
 		self.Cy = -y0+y3
 		self.Dy = y0
-		self.E = self.Ax * self.Cy - self.Ay * self.Cx
-		self.F1 = self.Ax * self.Dy - self.Ay * self.Dx + self.Bx * self.Cy - self.By * self.Cx
-		self.G1 = self.Bx * self.Dy - self.By * self.Dx
-		self.quad2 = quad2
+		self.Ev = self.Ax * self.Cy - self.Ay * self.Cx
+		self.F1v = self.Ax * self.Dy - self.Ay * self.Dx + self.Bx * self.Cy - self.By * self.Cx
+		self.G1v = self.Bx * self.Dy - self.By * self.Dx
+		self.Eu = self.Ay * self.Bx - self.Ax * self.By
+		self.F1u = self.Ay * self.Dx - self.Ax * self.Dy + self.Cy * self.Bx - self.Cx * self.By
+		self.G1u = self.Cy * self.Dx - self.Cx * self.Dy
 
 	def coefficients(self, x, y):
-		F = self.Ay * x - self.Ax * y + self.F1
-		G = self.By * x - self.Bx * y + self.G1
-		if self.E == 0:
-			v = -G / F
+		Fv = self.Ay * x - self.Ax * y + self.F1v
+		Gv = self.By * x - self.Bx * y + self.G1v
+		if self.Ev == 0:
+			v = -Gv / Fv
 		else:
-			sqrt_arg = F * F - 4 * self.E * G
-			if sqrt_arg <= 0:
-				v = -F / (2 * self.E)
-			else:
-				v = (-F + math.sqrt(sqrt_arg)) / (2 * self.E)
-				if v < 0 or 1 < v:
-					v = (-F - math.sqrt(sqrt_arg)) / (2 * self.E)
+			sqrt_arg = max(0, Fv * Fv - 4 * self.Ev * Gv)
+			v = (-Fv + math.sqrt(sqrt_arg)) / (2 * self.Ev)
 		if self.Ax * v + self.Bx == 0:
 			u = (y - self.Cy * v - self.Dy) / (self.Ay * v + self.By)
 		else:
 			u = (x - self.Cx * v - self.Dx) / (self.Ax * v + self.Bx)
+		"""
+		Doesn't seem to solve anything:
+		Fu = self.Ax * y - self.Ay * x + self.F1u
+		Gu = self.Cx * y - self.Cy * x + self.G1u
+		if self.Eu == 0:
+			u = -Gu / Fu
+		else:
+			sqrt_arg = max(0, Fu * Fu - 4 * self.Eu * Gu)
+			u = (-Fu + math.sqrt(sqrt_arg)) / (2 * self.Eu)
+		"""
 		return u, v
 
 	def map(self, x, y):
 		u, v = self.coefficients(x, y)
-		(x0,y0) = self.quad2[0]
-		(x1,y1) = self.quad2[1]
-		(x2,y2) = self.quad2[2]
-		(x3,y3) = self.quad2[3]
-		x = (1-u) * (1-v) * x0 + u * (1-v) * x1 + u * v * x2 + (1-u) * v * x3
-		y = (1-u) * (1-v) * y0 + u * (1-v) * y1 + u * v * y2 + (1-u) * v * y3
-		return x, y
+		((x0,y0),(x1,y1),(x2,y2),(x3,y3)) = self.quad2
+		x_dest = (1-u) * (1-v) * x0 + u * (1-v) * x1 + u * v * x2 + (1-u) * v * x3
+		y_dest = (1-u) * (1-v) * y0 + u * (1-v) * y1 + u * v * y2 + (1-u) * v * y3
+		return x_dest, y_dest
 
 	def map_grid(self, grid):
 		h, w, _ = grid.shape
@@ -93,13 +99,24 @@ class BilinearMap:
 			for x in range(w):
 				x_src, y_src = grid[y][x]
 				x_dst, y_dst = self.map(x_src, y_src)
-				grid_dst[y,x] = np.array([x_dst, y_dst], dtype=np.float32)
+				grid_dst[y][x] = np.array([x_dst, y_dst], dtype=np.float32)
 		return grid_dst
 
+def area(quad):
+	# shoelace formula
+	((x0,y0),(x1,y1),(x2,y2),(x3,y3)) = quad
+	return 0.5 * (x0*y1 - x1*y0 + x1*y2 - x2*y1 + x2*y3 - x3*y2 + x3*y0 - x0*y3)
+
+def clockwise(quad):
+	return area(quad) > 0
+
+def reverse(quad):
+	(p0,p1,p2,p3) = quad
+	return (p0,p3,p2,p1)
+
 if __name__ == '__main__':
-	quad1 = [(0,0), (6,0), (7,4), (2,6)]
-	# quad1 = [(1,1), (5,2), (4,5), (0,6)]
-	quad2 = [(2,2), (10,4), (8,10), (0,12)]
+	quad1 = ((0,0), (6,0), (7,4), (2,6))
+	quad2 = ((2,2), (10,4), (8,10), (0,12))
 	bil = BilinearMap(quad1, quad2)
 	for x in range(10):
 		for y in range(10):

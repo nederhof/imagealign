@@ -75,6 +75,11 @@ def triangle_area(t):
 	s = (a+b+c) / 2
 	return np.sqrt(s * (s-a) * (s-b) * (s-c))
 
+def perp_dot_product(p1, p2):
+	(x1,y1) = p1
+	(x2,y2) = p2
+	return x1*y2 - x2*y1
+
 def triangle_acute(t):
 	(p1, p2, p3) = t
 	v1 = np.subtract(p1, p2)
@@ -84,6 +89,19 @@ def triangle_acute(t):
 	p2 = np.dot(v2, v3)
 	p3 = np.dot(v3, v1)
 	return p1 > 0 and p2 > 0 and p3 > 0
+
+def quad_convex(q):
+	(p1, p2, p3, p4) = q
+	v1 = np.subtract(p1, p2)
+	v2 = np.subtract(p2, p3)
+	v3 = np.subtract(p3, p4)
+	v4 = np.subtract(p4, p1)
+	p1 = perp_dot_product(v1, v2)
+	p2 = perp_dot_product(v2, v3)
+	p3 = perp_dot_product(v3, v4)
+	p4 = perp_dot_product(v4, v1)
+	return p1 > 0 and p2 > 0 and p3 > 0 and p4 > 0 or \
+			p1 < 0 and p2 < 0 and p3 < 0 and p4 < 0
 
 def moved_point(p, x, y):
 	return (p[0] + x, p[1] + y)
@@ -112,7 +130,7 @@ def bilinear_distort(source, transform, w, h):
 	source_cv = cv2.cvtColor(np.array(source), cv2.COLOR_RGB2BGR)
 	grid = get_grid(w, h)
 	grid_warped = transform.map_grid(grid)
-	target_cv = cv2.remap(source_cv, grid_warped[:, :, 0], grid_warped[:, :, 1], cv2.INTER_LINEAR)
+	target_cv = cv2.remap(source_cv, grid_warped[:, :, 0], grid_warped[:, :, 1], cv2.INTER_CUBIC)
 	target = Image.fromarray(cv2.cvtColor(target_cv, cv2.COLOR_BGR2RGB))
 	return target
 
@@ -186,7 +204,11 @@ def merge_triangles(triangle_pairs):
 		else:
 			triangle_pair2 = triangle_pairs.pop(i)
 			merged_quad_pair = merge_triangle_pairs(edge, triangle_pair, triangle_pair2)
-			pairs.append(merged_quad_pair)
+			if quad_convex(merged_quad_pair[0]) and quad_convex(merged_quad_pair[1]):
+				pairs.append(merged_quad_pair)
+			else:
+				pairs.append(triangle_pair)
+				pairs.append(triangle_pair2)
 	return pairs
 
 def distort_image(source, pairs, w, h, bilinear):
