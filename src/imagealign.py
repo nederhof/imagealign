@@ -439,6 +439,8 @@ class AlignImage(tk.Frame):
 	def key(self, event):
 		if event.char == ' ':
 			self.register_point()
+		elif event.char == 'd':
+			self.delete_points()
 		elif event.char == '<':
 			self.zoom(KEY_ZOOM_STEP)
 		elif event.char == '>':
@@ -475,6 +477,13 @@ class AlignImage(tk.Frame):
 			self.point_pairs.pop(i)
 			self.normalize_point_pairs()
 			self.set_distorted()
+
+	def delete_points(self):
+		if self.image1 is None:
+			return
+		self.point_pairs = []
+		self.normalize_point_pairs()
+		self.set_distorted()
 
 	def nearest_point_index(self, x_canvas, y_canvas):
 		best_i = -1

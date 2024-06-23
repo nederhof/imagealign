@@ -1,4 +1,4 @@
-from scipy.spatial import distance
+from scipy.spatial import distance, Delaunay
 import cv2
 import sys
 import os
@@ -154,19 +154,19 @@ def in_triangle(x, y, t):
 	else:
 		return (v1 * v2 > 0) and (v2 * v3 > 0)
 
+def do_delaunay(source_points):
+	triangles = []
+	for indices in Delaunay(source_points).simplices:
+		p1 = source_points[indices[0]]
+		p2 = source_points[indices[1]]
+		p3 = source_points[indices[2]]
+		triangles.append((p1, p2, p3))
+	return triangles
+
 def point_pairs_to_triangle_pairs(point_pairs):
 	source_points = [(x1, y1) for ((x1, y1), _) in point_pairs]
 	source_to_target = {p1: p2 for (p1, p2) in point_pairs}
-	x_min = min([x for (x, _) in source_points])
-	y_min = min([y for (_, y) in source_points])
-	x_max = max([x for (x, _) in source_points])
-	y_max = max([y for (_, y) in source_points])
-	w = x_max - x_min + 1
-	h = y_max - y_min + 1
-	subdiv = cv2.Subdiv2D((x_min, y_min, w, h))
-	subdiv.insert(source_points)
-	triangles = [((int(x1), int(y1)), (int(x2), int(y2)), (int(x3), int(y3))) \
-		for (x1, y1, x2, y2, x3, y3) in subdiv.getTriangleList()]
+	triangles = do_delaunay(source_points)
 	return [((p1, p2, p3), (source_to_target[p1], source_to_target[p2], source_to_target[p3])) \
 		for (p1, p2, p3) in triangles]
 
