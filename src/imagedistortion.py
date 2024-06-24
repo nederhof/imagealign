@@ -129,7 +129,7 @@ def quad_distort(source, transform, w, h):
 def bilinear_distort(source, transform, w, h):
 	source_cv = cv2.cvtColor(np.array(source), cv2.COLOR_RGB2BGR)
 	grid = get_grid(w, h)
-	grid_warped = transform.map_grid(grid)
+	grid_warped = transform.map_grid_fast(grid)
 	target_cv = cv2.remap(source_cv, grid_warped[:, :, 0], grid_warped[:, :, 1], cv2.INTER_CUBIC)
 	target = Image.fromarray(cv2.cvtColor(target_cv, cv2.COLOR_BGR2RGB))
 	return target

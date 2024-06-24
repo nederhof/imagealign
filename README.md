@@ -131,8 +131,10 @@ non-linear Thin Plate Spline method.
 
 ### Bilinear transform
 
-As an attempt to avoid seams at the edges of quadrilaterals, also a bilinear 
-transform was implemented. This is very slow however.
+As an attempt to avoid seams at the edges of quadrilaterals in the case of perspective
+transforms, also a bilinear transform was implemented.
+The Bilinear mode is generally preferred over the Quadrilaterals mode if there are many
+point pairs, resulting in a combination of triangles and quadrilaterals.
 
 ### Finding points automatically
 
