@@ -84,6 +84,7 @@ Points in `image2.png` that fall outside the polygon that is mapped to `image1.p
 | **>** or **-** | Zoom out |
 | *arrow keys* | Move up/down/left/right |
 | **a** | Find point pairs automatically |
+| **d** | Delete all point pairs |
 
 ### Mouse
 
