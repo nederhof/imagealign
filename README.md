@@ -106,7 +106,26 @@ Use the mouse wheel to zoom in and out.
 To navigate, press the left mouse button (while not being on top of a point linking the two
 images), drag, and release the mouse button.
 
-### Hints
+### Polygons
+
+By default, triangles from the second image are mapped to triangles from the first image,
+using affine transforms. This is in the **Triangle** mode.
+
+In the **Quadrilaterals** mode, the tool automatically merges
+some triangles into quadrilaterals. The quadrilaterals are then mapped using
+perspective transforms. The downside is however that seams
+between quadrilaterals and other quadrilaterals and triangles will start to appear. 
+Therefore this may only be appropriate with say four points selected around a text.
+
+As an attempt to avoid seams at the edges of quadrilaterals in the case of perspective
+transforms, also a bilinear transform was implemented.
+This **Bilinear** mode is generally preferred over the Quadrilaterals mode if there are many
+point pairs, resulting in a combination of triangles and quadrilaterals.
+
+In the **Warp** mode, no polygons are used at all. The image transformation is done using the
+non-linear Thin Plate Spline method.
+
+### Manually adding points
 
 A suitable strategy to create points aligning the two images is as follows.
 Start with corner points. Choose a position in the first image near one of the corners,
@@ -115,27 +134,6 @@ drag the created point similarly to the top-right corner of the top-most, right-
 Repeat, eventually adjusting points closer to the center as well if necessary, but it is best
 to try to avoid points too close together.
 Alternate between viewing the first image, the second image, and both images together.
-
-### Triangles versus quadrilaterals
-
-By default, triangles from the second image are mapped to triangles from the first image,
-using affine transforms.
-
-If desired, it is also possible to let the tool automatically merge
-some triangles into quadrilaterals. The quadrilaterals are then mapped using
-perspective transforms. The downside is however that seams
-between quadrilaterals and other quadrilaterals and triangles will start to appear. 
-Therefore this may only be appropriate with say four points selected around a text.
-
-With Warp, no polygons are used at all. The image transformation is done using the
-non-linear Thin Plate Spline method.
-
-### Bilinear transform
-
-As an attempt to avoid seams at the edges of quadrilaterals in the case of perspective
-transforms, also a bilinear transform was implemented.
-The Bilinear mode is generally preferred over the Quadrilaterals mode if there are many
-point pairs, resulting in a combination of triangles and quadrilaterals.
 
 ### Finding points automatically
 
@@ -153,4 +151,4 @@ This is best used in the Quadrilaterals mode.
 
 ## Acknowledgements
 
-Ideas and feedback by Christian Casey have been instrumental in bringing this project forward.
+Ideas and feedback from Christian Casey have been instrumental in bringing this project forward.
