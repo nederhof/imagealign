@@ -2,6 +2,7 @@ import csv
 import os
 import sys
 import math
+import webbrowser
 import tkinter as tk
 from getopt import getopt, GetoptError
 from PIL import Image, ImageTk
@@ -91,6 +92,7 @@ class AlignImage(tk.Frame):
 					('Default view', self.default_view, '<Meta-r>', 'Command+R')]))
 		self.menu = AlignImageMenu(self, items)
 		self.add_polygon_control()
+		self.add_help()
 		self.menu_empty = tk.Menu(self.master)
 
 	def add_polygon_control(self):
@@ -105,6 +107,9 @@ class AlignImage(tk.Frame):
 		self.poly_menu.add_radiobutton(label='Warp', var=self.poly_mode_var, value='w', 
 			command=self.set_warp)
 		self.menu.add_cascade(label='Polygons', menu=self.poly_menu)
+
+	def add_help(self):
+		self.menu.add_command(label='Help', command=self.show_help)
 
 	def menubar_show(self):
 		self.master.configure(menu=self.menu)
@@ -510,6 +515,9 @@ class AlignImage(tk.Frame):
 
 	def normal_cursor(self):
 		self.winfo_toplevel().config(cursor='')
+
+	def show_help(self):
+		webbrowser.open("help.html", new=0, autoraise=True)
 
 	def save(self):
 		None

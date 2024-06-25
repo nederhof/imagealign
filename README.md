@@ -12,12 +12,13 @@ that may not quite align with the first. Other common image formats such as JPG 
 
 ## Preparation
 
-Make sure that Python packages numpy, cv2, PIL are available. Installing is typically by:
+Make sure that Python packages numpy, cv2, PIL, webbrowser are available. Installing is typically by:
 
 ```
 pip install numpy
 pip install opencv-python
 pip install pillow
+pip install webbrowser
 ```
 
 ## Starting
@@ -73,6 +74,7 @@ Points in `image2.png` that fall outside the polygon that is mapped to `image1.p
 | Quadrilaterals | q | q | Use combination of quadrilaterals and triangles |
 | Bilinear | b | b | Use bilinear transform for quadrilaterals |
 | Warp | w | w | Do not use polygons |
+| Help |   |   | Open web page listing keyboard functionality |
 
 ### Further keyboard functionality
 
