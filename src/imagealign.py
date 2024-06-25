@@ -84,12 +84,12 @@ class AlignImage(tk.Frame):
 				('View both', self.view_both, '3', '3')]))
 		if sys.platform == 'darwin':
 			items.append(('View', 
-				[('Maximize', self.maximize, '<F11>', 'F11'),
-					('Default view', self.default_view, '<F5>', 'F5')]))
-		else:
-			items.append(('View', 
 				[('Maximize', self.maximize, '<Meta-Control-f>', 'Command+Ctrl+F'),
 					('Default view', self.default_view, '<Meta-r>', 'Command+R')]))
+		else:
+			items.append(('View', 
+				[('Maximize', self.maximize, '<F11>', 'F11'),
+					('Default view', self.default_view, '<F5>', 'F5')]))
 		self.menu = AlignImageMenu(self, items)
 		self.add_polygon_control()
 		self.add_help()
