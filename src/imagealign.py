@@ -187,10 +187,13 @@ class AlignImage(tk.Frame):
 
 	def add_auto(self):
 		self.show_wait()
-		if self.poly_mode_var.get() == 'q':
-			self.point_pairs = get_corner_point_pairs(self.image2, self.image1)
-		else:
-			self.point_pairs = get_grid_point_pairs(self.image2, self.image1)
+		self.point_pairs = get_grid_point_pairs(self.image2, self.image1)
+		self.normalize_point_pairs()
+		self.set_distorted()
+
+	def add_auto_four(self):
+		self.show_wait()
+		self.point_pairs = get_corner_point_pairs(self.image2, self.image1)
 		self.normalize_point_pairs()
 		self.set_distorted()
 
@@ -459,6 +462,8 @@ class AlignImage(tk.Frame):
 			self.set_warp()
 		elif event.char == 'a':
 			self.add_auto()
+		elif event.char == 'f':
+			self.add_auto_four()
 
 	def register_point(self):
 		if self.image1 is None:

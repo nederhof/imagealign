@@ -84,6 +84,7 @@ Points in `image2.png` that fall outside the polygon that is mapped to `image1.p
 | **>** or **-** | Zoom out |
 | *arrow keys* | Move up/down/left/right |
 | **a** | Find point pairs automatically |
+| **f** | Find four point pairs at corners automatically |
 | **d** | Delete all point pairs |
 
 ### Mouse
@@ -140,13 +141,15 @@ point pairs, resulting in a combination of triangles and quadrilaterals.
 
 By pressing **a**, the existing point pairs are deleted, and
 corresponding point pairs are automatically found, using SIFT.
-In the Quadrilaterals mode, only four new points are introduced, at the corners of the images,
-under the assumption that one image resulted from another by a perspective transform.
-
-In the Triangles, Bilinear and Warp modes, 
-the corresponding points are spread out over the images.
+The points are spread out over the images.
+This is best used in the Triangles, Bilinear and Warp modes.
 There are often a small number of incorrect point pairs, which need to be 
-removed manually. This is most conveniently done in the Warp mode.
+removed manually; this is most conveniently done in the Warp mode.
+
+By pressing **f**,
+only four new point pairs are introduced, at the corners of the images,
+under the assumption that one image resulted from another by a perspective transform.
+This is best used in the Quadrilaterals mode.
 
 ## Acknowledgements
 
